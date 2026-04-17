@@ -87,7 +87,14 @@ def normalize_and_validate_email(value: str) -> str:
         raise HTTPException(status_code=422, detail="Invalid email address")
 
     local, _, domain = normalized.rpartition("@")
-    if not local or not domain or "." not in domain or domain.startswith(".") or domain.endswith("."):
+    invalid_domain = (
+        not domain
+        or "." not in domain
+        or domain.startswith(".")
+        or domain.endswith(".")
+    )
+
+    if not local or invalid_domain:
         raise HTTPException(status_code=422, detail="Invalid email address")
 
     return normalized
