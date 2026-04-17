@@ -81,9 +81,9 @@ activities = {
 
 def normalize_and_validate_email(value: str) -> str:
     normalized = value.strip().lower()
-    _, parsed = parseaddr(normalized)
+    parsed = parseaddr(normalized)[1]
 
-    if parsed != normalized or "@" not in normalized:
+    if not parsed or parsed != normalized or "@" not in normalized:
         raise HTTPException(status_code=422, detail="Invalid email address")
 
     local, _, domain = normalized.rpartition("@")
