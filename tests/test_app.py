@@ -1,4 +1,5 @@
 import copy
+from urllib.parse import quote
 import pytest
 from fastapi.testclient import TestClient
 import src.app as app_module
@@ -18,6 +19,10 @@ def reset_activities(monkeypatch):
 @pytest.fixture
 def client():
     return TestClient(app)
+
+
+def activity_endpoint(activity_name: str, action: str) -> str:
+    return f"/activities/{quote(activity_name, safe='')}/{action}"
 
 
 # ---------------------------------------------------------------------------
@@ -47,7 +52,7 @@ def test_signup_success(client):
     email = "newstudent@mergington.edu"
 
     # Act
-    response = client.post(f"/activities/{activity_name}/signup?email={email}")
+    response = client.post(f"{activity_endpoint(activity_name, 'signup')}?email={email}")
 
     # Assert
     assert response.status_code == 200
@@ -62,7 +67,7 @@ def test_signup_normalizes_email(client):
     normalized = "newstudent@mergington.edu"
 
     # Act
-    response = client.post(f"/activities/{activity_name}/signup?email={email}")
+    response = client.post(f"{activity_endpoint(activity_name, 'signup')}?email={email}")
 
     # Assert
     assert response.status_code == 200
@@ -76,7 +81,7 @@ def test_signup_invalid_email_returns_422(client):
     invalid_email = "not-an-email"
 
     # Act
-    response = client.post(f"/activities/{activity_name}/signup?email={invalid_email}")
+    response = client.post(f"{activity_endpoint(activity_name, 'signup')}?email={invalid_email}")
 
     # Assert
     assert response.status_code == 422
@@ -88,7 +93,7 @@ def test_signup_duplicate_returns_400(client):
     email = "michael@mergington.edu"  # already in seed data
 
     # Act
-    response = client.post(f"/activities/{activity_name}/signup?email={email}")
+    response = client.post(f"{activity_endpoint(activity_name, 'signup')}?email={email}")
 
     # Assert
     assert response.status_code == 400
@@ -101,7 +106,7 @@ def test_signup_unknown_activity_returns_404(client):
     email = "student@mergington.edu"
 
     # Act
-    response = client.post(f"/activities/{activity_name}/signup?email={email}")
+    response = client.post(f"{activity_endpoint(activity_name, 'signup')}?email={email}")
 
     # Assert
     assert response.status_code == 404
@@ -118,7 +123,7 @@ def test_unregister_success(client):
     email = "michael@mergington.edu"
 
     # Act
-    response = client.delete(f"/activities/{activity_name}/unregister?email={email}")
+    response = client.delete(f"{activity_endpoint(activity_name, 'unregister')}?email={email}")
 
     # Assert
     assert response.status_code == 200
@@ -133,7 +138,7 @@ def test_unregister_normalizes_email(client):
     normalized = "michael@mergington.edu"
 
     # Act
-    response = client.delete(f"/activities/{activity_name}/unregister?email={email}")
+    response = client.delete(f"{activity_endpoint(activity_name, 'unregister')}?email={email}")
 
     # Assert
     assert response.status_code == 200
@@ -147,7 +152,7 @@ def test_unregister_not_registered_returns_404(client):
     email = "notregistered@mergington.edu"
 
     # Act
-    response = client.delete(f"/activities/{activity_name}/unregister?email={email}")
+    response = client.delete(f"{activity_endpoint(activity_name, 'unregister')}?email={email}")
 
     # Assert
     assert response.status_code == 404
@@ -160,7 +165,7 @@ def test_unregister_unknown_activity_returns_404(client):
     email = "student@mergington.edu"
 
     # Act
-    response = client.delete(f"/activities/{activity_name}/unregister?email={email}")
+    response = client.delete(f"{activity_endpoint(activity_name, 'unregister')}?email={email}")
 
     # Assert
     assert response.status_code == 404
