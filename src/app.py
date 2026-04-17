@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
 from pathlib import Path
+from email.utils import parseaddr
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
@@ -78,6 +79,20 @@ activities = {
 }
 
 
+def normalize_and_validate_email(value: str) -> str:
+    normalized = value.strip().lower()
+    _, parsed = parseaddr(normalized)
+
+    if parsed != normalized or "@" not in normalized:
+        raise HTTPException(status_code=422, detail="Invalid email address")
+
+    local, _, domain = normalized.rpartition("@")
+    if not local or not domain or "." not in domain or domain.startswith(".") or domain.endswith("."):
+        raise HTTPException(status_code=422, detail="Invalid email address")
+
+    return normalized
+
+
 @app.get("/")
 def root():
     return RedirectResponse(url="/static/index.html")
@@ -94,6 +109,8 @@ def signup_for_activity(activity_name: str, email: str):
     # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
+
+    email = normalize_and_validate_email(email)
 
     # Get the specific activity
     activity = activities[activity_name]
@@ -113,6 +130,7 @@ def unregister_from_activity(activity_name: str, email: str):
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
 
+    email = normalize_and_validate_email(email)
     activity = activities[activity_name]
 
     if email not in activity["participants"]:

@@ -55,6 +55,33 @@ def test_signup_success(client):
     assert email in client.get("/activities").json()[activity_name]["participants"]
 
 
+def test_signup_normalizes_email(client):
+    # Arrange
+    activity_name = "Chess Club"
+    email = "  NewStudent@Mergington.edu  "
+    normalized = "newstudent@mergington.edu"
+
+    # Act
+    response = client.post(f"/activities/{activity_name}/signup?email={email}")
+
+    # Assert
+    assert response.status_code == 200
+    assert normalized in response.json()["message"]
+    assert normalized in client.get("/activities").json()[activity_name]["participants"]
+
+
+def test_signup_invalid_email_returns_422(client):
+    # Arrange
+    activity_name = "Chess Club"
+    invalid_email = "not-an-email"
+
+    # Act
+    response = client.post(f"/activities/{activity_name}/signup?email={invalid_email}")
+
+    # Assert
+    assert response.status_code == 422
+
+
 def test_signup_duplicate_returns_400(client):
     # Arrange
     activity_name = "Chess Club"
@@ -97,6 +124,21 @@ def test_unregister_success(client):
     assert response.status_code == 200
     assert email in response.json()["message"]
     assert email not in client.get("/activities").json()[activity_name]["participants"]
+
+
+def test_unregister_normalizes_email(client):
+    # Arrange
+    activity_name = "Chess Club"
+    email = "  MICHAEL@MERGINGTON.EDU  "
+    normalized = "michael@mergington.edu"
+
+    # Act
+    response = client.delete(f"/activities/{activity_name}/unregister?email={email}")
+
+    # Assert
+    assert response.status_code == 200
+    assert normalized in response.json()["message"]
+    assert normalized not in client.get("/activities").json()[activity_name]["participants"]
 
 
 def test_unregister_not_registered_returns_404(client):
