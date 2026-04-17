@@ -5,10 +5,13 @@ import src.app as app_module
 from src.app import app
 
 
+_BASELINE_ACTIVITIES = copy.deepcopy(app_module.activities)
+
+
 @pytest.fixture(autouse=True)
 def reset_activities(monkeypatch):
     """Restore a clean copy of activities before each test."""
-    clean = copy.deepcopy(app_module.activities)
+    clean = copy.deepcopy(_BASELINE_ACTIVITIES)
     monkeypatch.setattr(app_module, "activities", clean)
 
 
